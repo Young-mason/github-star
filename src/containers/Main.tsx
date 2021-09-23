@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Button } from "components/Button";
 import { Input } from "components/Input";
+import UserInfo from "components/UserInfo";
+import RepoItem from "components/RepoItem";
 import axios from "axios";
 
 const getRepo = (username: string) =>
@@ -35,6 +37,9 @@ function Main() {
         <Input onChange={handleChange} value={value} onKeyUp={handleKeyUp} />
         <StyledButton onClick={handleClick}>Search</StyledButton>
       </Header>
+
+      {/* <UserInfo /> */}
+      {/* <RepoItem/> */}
     </Container>
   );
 }
