@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { fromEvent, merge } from "rxjs";
+import { filter, tap } from "rxjs/operators";
 import styled from "styled-components";
 import { Button } from "components/Button";
 import { Input } from "components/Input";
@@ -10,21 +12,22 @@ const getRepo = (username: string) =>
   axios.get(`https://api.github.com/users/${username}/repos`);
 
 function Main() {
-  const [value, setValue] = useState("");
+  const buttonRef = useRef<any>(null);
+  const inputRef = useRef<any>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value);
-  };
+  useEffect(() => {
+    const click$ = fromEvent(buttonRef.current, "click");
+    const enter$ = fromEvent(inputRef.current, "keyup").pipe(
+      filter((e: any) => e.key === "Enter")
+    );
 
-  const handleClick = () => {
-    getRepo(value).then(console.log);
-  };
+    const allEvents$ = merge(click$, enter$).subscribe(() => {
+      const username = inputRef.current.value;
+      getRepo(username).then(console.log);
+    });
 
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      getRepo(value).then(console.log);
-    }
-  };
+    return () => allEvents$.unsubscribe();
+  }, []);
 
   return (
     <Container>
@@ -34,8 +37,8 @@ function Main() {
           Unofficial GitHub Star ranking for users, organizations and
           repositories
         </Description>
-        <Input onChange={handleChange} value={value} onKeyUp={handleKeyUp} />
-        <StyledButton onClick={handleClick}>Search</StyledButton>
+        <Input ref={inputRef} />
+        <StyledButton ref={buttonRef}>Search</StyledButton>
       </Header>
 
       {/* <UserInfo /> */}
