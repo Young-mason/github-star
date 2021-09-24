@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { fromEvent, merge } from "rxjs";
+import { useSelector, useDispatch } from "react-redux";
 import { filter } from "rxjs/operators";
 import styled from "styled-components";
 import { Button } from "components/Button";
@@ -8,13 +9,14 @@ import UserInfo from "components/UserInfo";
 import Repo from "components/Repo";
 import { RepoItem, User } from "models";
 import axios from "axios";
-
-const getRepo = (username: string) =>
-  axios.get(`https://api.github.com/users/${username}/repos`);
+import { RootState } from "stores/reducer";
+import { getRepo } from "stores/actions";
 
 function Main() {
-  const [data, setData] = useState<RepoItem[]>([]);
-  const [user, setUser] = useState<User>({} as User);
+  // const [data, setData] = useState<RepoItem[]>([]);
+  // const [user, setUser] = useState<User>({} as User);
+  const dispatch = useDispatch();
+  const { repos, user } = useSelector((state: RootState) => state.appState);
 
   const buttonRef = useRef<any>(null);
   const inputRef = useRef<any>(null);
@@ -27,25 +29,8 @@ function Main() {
 
     const allEvents$ = merge(click$, enter$).subscribe(() => {
       const username: string = inputRef.current.value;
-      getRepo(username).then((res) => {
-        const rawDatas = res.data;
 
-        const repoData: RepoItem[] = rawDatas.map((data: any) => ({
-          htmlUrl: data.html_url,
-          fullName: data.name,
-          starCount: data.stargazers_count,
-        }));
-
-        const repoCount = repoData.length;
-        const totalStars = repoData.reduce(
-          (acc, cur) => acc + cur.starCount,
-          0
-        );
-
-        const userData = { username, repoCount, totalStars };
-        setData(repoData);
-        setUser(userData);
-      });
+      dispatch(getRepo(username));
     });
 
     return () => allEvents$.unsubscribe();
@@ -63,14 +48,14 @@ function Main() {
         <StyledButton ref={buttonRef}>Search</StyledButton>
       </Header>
 
-      <UserInfo
+      {/* <UserInfo
         username={user.username}
         repoCount={user.repoCount}
         totalStars={user.totalStars}
-      />
+      /> */}
 
       <RepoList>
-        {data.map((el) => (
+        {repos.map((el: any) => (
           <Repo
             key={el.fullName}
             fullName={el.fullName}
