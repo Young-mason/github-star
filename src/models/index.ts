@@ -3,3 +3,9 @@ export interface RepoItem {
   fullName: string;
   starCount: number;
 }
+
+export interface User {
+  username: string;
+  repoCount: number;
+  totalStars: number;
+}

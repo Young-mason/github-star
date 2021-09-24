@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { fromEvent, merge } from "rxjs";
-import { filter, tap } from "rxjs/operators";
+import { filter } from "rxjs/operators";
 import styled from "styled-components";
 import { Button } from "components/Button";
 import { Input } from "components/Input";
 import UserInfo from "components/UserInfo";
 import Repo from "components/Repo";
-import { RepoItem } from "models/repo.model";
+import { RepoItem, User } from "models";
 import axios from "axios";
 
 const getRepo = (username: string) =>
@@ -14,6 +14,8 @@ const getRepo = (username: string) =>
 
 function Main() {
   const [data, setData] = useState<RepoItem[]>([]);
+  const [user, setUser] = useState<User>({} as User);
+
   const buttonRef = useRef<any>(null);
   const inputRef = useRef<any>(null);
 
@@ -24,17 +26,25 @@ function Main() {
     );
 
     const allEvents$ = merge(click$, enter$).subscribe(() => {
-      const username = inputRef.current.value;
+      const username: string = inputRef.current.value;
       getRepo(username).then((res) => {
         const rawDatas = res.data;
 
-        const mapped = rawDatas.map((data: any) => ({
+        const repoData: RepoItem[] = rawDatas.map((data: any) => ({
           htmlUrl: data.html_url,
           fullName: data.name,
           starCount: data.stargazers_count,
         }));
 
-        setData(mapped);
+        const repoCount = repoData.length;
+        const totalStars = repoData.reduce(
+          (acc, cur) => acc + cur.starCount,
+          0
+        );
+
+        const userData = { username, repoCount, totalStars };
+        setData(repoData);
+        setUser(userData);
       });
     });
 
@@ -53,7 +63,11 @@ function Main() {
         <StyledButton ref={buttonRef}>Search</StyledButton>
       </Header>
 
-      {/* <UserInfo /> */}
+      <UserInfo
+        username={user.username}
+        repoCount={user.repoCount}
+        totalStars={user.totalStars}
+      />
 
       <RepoList>
         {data.map((el) => (
