@@ -5,13 +5,15 @@ import styled from "styled-components";
 import { Button } from "components/Button";
 import { Input } from "components/Input";
 import UserInfo from "components/UserInfo";
-import RepoItem from "components/RepoItem";
+import Repo from "components/Repo";
+import { RepoItem } from "models/repo.model";
 import axios from "axios";
 
 const getRepo = (username: string) =>
   axios.get(`https://api.github.com/users/${username}/repos`);
 
 function Main() {
+  const [data, setData] = useState<RepoItem[]>([]);
   const buttonRef = useRef<any>(null);
   const inputRef = useRef<any>(null);
 
@@ -23,7 +25,17 @@ function Main() {
 
     const allEvents$ = merge(click$, enter$).subscribe(() => {
       const username = inputRef.current.value;
-      getRepo(username).then(console.log);
+      getRepo(username).then((res) => {
+        const rawDatas = res.data;
+
+        const mapped = rawDatas.map((data: any) => ({
+          htmlUrl: data.html_url,
+          fullName: data.name,
+          starCount: data.stargazers_count,
+        }));
+
+        setData(mapped);
+      });
     });
 
     return () => allEvents$.unsubscribe();
@@ -42,7 +54,17 @@ function Main() {
       </Header>
 
       {/* <UserInfo /> */}
-      {/* <RepoItem/> */}
+
+      <RepoList>
+        {data.map((el) => (
+          <Repo
+            key={el.fullName}
+            fullName={el.fullName}
+            htmlUrl={el.htmlUrl}
+            starCount={el.starCount}
+          />
+        ))}
+      </RepoList>
     </Container>
   );
 }
@@ -70,6 +92,6 @@ const StyledButton = styled(Button)`
   margin-left: 20px;
 `;
 
-const RepoItems = styled.div``;
+const RepoList = styled.div``;
 
 export default Main;

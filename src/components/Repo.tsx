@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
 import { FaStar } from "react-icons/fa";
+import { fromEvent } from "rxjs";
 
 interface RepoItemProps {
   htmlUrl: string;
@@ -9,8 +10,20 @@ interface RepoItemProps {
 }
 
 function RepoItem({ htmlUrl, fullName, starCount }: RepoItemProps) {
+  const wrapperRef = useRef<any>(null);
+
+  useEffect(() => {
+    const click$ = fromEvent(wrapperRef.current, "click");
+
+    const event$ = click$.subscribe(() => {
+      window.open(htmlUrl);
+    });
+
+    return () => event$.unsubscribe();
+  }, [htmlUrl]);
+
   return (
-    <Wrapper>
+    <Wrapper ref={wrapperRef}>
       <UserName>{fullName}</UserName>
       <Star>
         <FaStar />
